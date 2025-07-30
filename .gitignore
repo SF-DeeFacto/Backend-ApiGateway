@@ -138,3 +138,28 @@ $RECYCLE.BIN/
 *.lnk
 
 /.cursor
+
+# Logs
+logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+dev-debug.log
+# Dependency directories
+node_modules/
+# Environment variables
+# Editor directories and files
+.vscode
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+# OS specific
+
+# Task files
+# tasks.json
+# tasks/ 
+/.taskmaster
+api-gateway/Postman_Test_Collection.json
+api-gateway/Postman_Usage_Guide.md
