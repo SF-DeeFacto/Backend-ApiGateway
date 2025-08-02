@@ -1,88 +1,33 @@
-server:
-  port: 8080
+# =============================================================================
+# API Gateway 기본 설정 파일
+# =============================================================================
+# 이 파일은 모든 환경에서 공통으로 사용되는 기본 설정을 정의합니다.
+# 환경별 설정은 application-dev.yml, application-prod.yml에서 재정의할 수 있습니다.
 
+# 서버 설정
+server:
+  port: ${SERVER_PORT:8080}  # API Gateway가 리스닝할 포트
+
+# Spring 애플리케이션 설정
 spring:
   application:
-    name: api-gateway
+    name: api-gateway  # 애플리케이션 이름 (모니터링에서 사용)
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:dev}  # 활성 프로필 (기본값: dev)
 
-  cloud:
-    gateway:
-      routes:
-        # 관리자 관리 서비스 라우팅
-        - id: admin-service
-          uri: http://localhost:8081
-          predicates:
-            - Path=/admin/**
-          # filters:
-          #   - StripPrefix=1
-
-        # 사용자 관리 서비스 라우팅
-        - id: user-service
-          uri: http://localhost:8082
-          predicates:
-            - Path=/user/**
-          # filters:
-          #   - StripPrefix=1
-
-        # 알림 서비스 라우팅
-        - id: notification-service
-          uri: http://localhost:8083
-          predicates:
-            - Path=/noti/**
-          # filters:
-          #   - StripPrefix=1
-
-        # 대시보드 관련 API 라우팅 (대시보드 페이지)
-        - id: dashboard-service
-          uri: http://localhost:8084
-          predicates:
-            - Path=/home/**
-          # filters:
-          #   - StripPrefix=1
-
-        # IoT 센서 데이터 관리 서비스 라우팅
-        - id: sensors-service
-          uri: http://localhost:8085
-          predicates:
-            - Path=/sensors/**
-          # filters:
-          #   - StripPrefix=1
-
-        # 리포트 서비스 라우팅
-        - id: report-service
-          uri: http://localhost:8086
-          predicates:
-            - Path=/reports/**
-          # filters:
-          #   - StripPrefix=2
-
-        # 챗봇 서비스 라우팅
-        - id: chatbot-service
-          uri: http://localhost:8087
-          predicates:
-            - Path=/chatbot/**
-          # filters:
-          #   - StripPrefix=1
-
-# 로깅 설정
-logging:
-  level:
-    org.springframework.cloud.gateway: DEBUG
-    com.deefacto.api_gateway: DEBUG
-  pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
-    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
-  file:
-    name: logs/api-gateway.log
-    max-size: 10MB
-    max-history: 30
-
-# Actuator 설정 (모니터링용)
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health,info,metrics,gateway
-  endpoint:
-    health:
-      show-details: always
+# =============================================================================
+# JWT 설정 (기본값)
+# =============================================================================
+jwt:
+  secret-key: ${JWT_SECRET_KEY:default-secret-key-change-in-environment-specific-config}
+  expires-in: ${JWT_EXPIRES_IN:86400}  # 토큰 만료 시간 (초) - 24시간
+  
+  # JWT 토큰 내부의 claim 이름 정의
+  claims:
+    employee-id: employeeId  # 직원 ID claim 이름
+    role: role               # 사용자 역할 claim 이름
+  
+  # HTTP 헤더 이름 정의 (하위 서비스로 전달될 헤더)
+  headers:
+    employee-id: X-Employee-Id  # 직원 ID 헤더 이름
+    role: X-Role                # 사용자 역할 헤더 이름
