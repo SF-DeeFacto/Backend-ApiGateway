@@ -2,8 +2,10 @@ package com.deefacto.api_gateway.filter;
 
 import com.deefacto.api_gateway.util.JwtProvider;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
+import org.springframework.core.Ordered;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -31,13 +33,23 @@ import java.nio.charset.StandardCharsets;
  */
 @Component
 @RequiredArgsConstructor  // final 필드들을 매개변수로 받는 생성자 자동 생성
-public class JwtAuthFilter implements GlobalFilter {
+@Slf4j
+public class JwtAuthFilter implements GlobalFilter, Ordered {
 
     /**
      * JWT 토큰 처리를 담당하는 유틸리티 클래스
      * 토큰 검증, 파싱 등의 기능 제공
      */
     private final JwtProvider jwtProvider;
+
+    /**
+     * 필터 실행 순서를 정의
+     * 낮은 숫자가 먼저 실행됨 (다른 필터보다 우선 실행)
+     */
+    @Override
+    public int getOrder() {
+        return -100; // 다른 필터보다 먼저 실행
+    }
 
     /**
      * 모든 API 요청에 대해 실행되는 필터 메서드
@@ -61,16 +73,21 @@ public class JwtAuthFilter implements GlobalFilter {
 
         // 요청 경로 추출 (인증 제외 경로 확인용)
         String path = exchange.getRequest().getURI().getPath();
+        
+        // 디버깅을 위한 로그 추가
+        log.info("JwtAuthFilter - 요청 경로: {}, Authorization 헤더: {}", path, authHeader);
 
         // 인증이 필요하지 않은 경로들 (로그인, 회원가입)
         // 이 경로들은 JWT 토큰 없이도 접근 가능
         if (path.startsWith("/auth/login") || path.startsWith("/auth/register")) {
+            log.info("JwtAuthFilter - 인증 제외 경로: {}", path);
             // 인증 없이 바로 다음 필터/서비스로 요청 전달
             return chain.filter(exchange);
         }
 
         // Authorization 헤더가 없거나 "Bearer "로 시작하지 않는 경우
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            log.warn("JwtAuthFilter - 인증 헤더 없음 또는 잘못된 형식: {}", authHeader);
             return onError(exchange, "인증 헤더가 없거나 잘못된 형식입니다", HttpStatus.UNAUTHORIZED);
         }
         
@@ -79,12 +96,15 @@ public class JwtAuthFilter implements GlobalFilter {
         
         // JWT 토큰 유효성 검증 (서명, 만료시간 등)
         if (!jwtProvider.validateToken(token)) {
+            log.warn("JwtAuthFilter - 유효하지 않은 토큰: {}", token);
             return onError(exchange, "유효하지 않은 토큰입니다", HttpStatus.UNAUTHORIZED);
         }
 
         // JWT 토큰에서 사용자 정보 추출
         String employeeId = jwtProvider.getEmployeeIdFromToken(token);  // 직원 ID
         String role = jwtProvider.getRoleFromToken(token);              // 사용자 역할
+        
+        log.info("JwtAuthFilter - 토큰 검증 성공: employeeId={}, role={}", employeeId, role);
 
         // 원본 요청에 사용자 정보를 헤더로 추가하여 새로운 요청 생성
         // 하위 서비스에서는 이 헤더를 통해 사용자 정보를 확인할 수 있음
