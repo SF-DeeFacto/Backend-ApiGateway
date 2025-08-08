@@ -1,0 +1,33 @@
+# =============================================================================
+# API Gateway 기본 설정 파일
+# =============================================================================
+# 이 파일은 모든 환경에서 공통으로 사용되는 기본 설정을 정의합니다.
+# 환경별 설정은 application-dev.yml, application-prod.yml에서 재정의할 수 있습니다.
+
+# 서버 설정
+server:
+  port: ${SERVER_PORT:8080}  # API Gateway가 리스닝할 포트
+
+# Spring 애플리케이션 설정
+spring:
+  application:
+    name: api-gateway  # 애플리케이션 이름 (모니터링에서 사용)
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:dev}  # 활성 프로필 (기본값: dev)
+
+# =============================================================================
+# JWT 설정 (기본값)
+# =============================================================================
+jwt:
+  secret-key: ${JWT_SECRET_KEY:default-secret-key-change-in-environment-specific-config}
+  expires-in: ${JWT_EXPIRES_IN:86400}  # 토큰 만료 시간 (초) - 24시간
+  
+  # JWT 토큰 내부의 claim 이름 정의
+  claims:
+    employee-id: employeeId  # 직원 ID claim 이름
+    role: role               # 사용자 역할 claim 이름
+  
+  # HTTP 헤더 이름 정의 (하위 서비스로 전달될 헤더)
+  headers:
+    employee-id: X-Employee-Id  # 직원 ID 헤더 이름
+    role: X-Role                # 사용자 역할 헤더 이름
