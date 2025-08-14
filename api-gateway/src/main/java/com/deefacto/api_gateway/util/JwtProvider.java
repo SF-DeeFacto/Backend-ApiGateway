@@ -67,6 +67,25 @@ public class JwtProvider {
         }
     }
 
+    public Long getUserIdFromToken(String token) {
+        try {
+            // JWT 토큰을 파싱하여 Claims 추출
+            Claims claims = Jwts.parser()
+                    .verifyWith(getSigningKey())  // 서명 키로 검증
+                    .build()
+                    .parseSignedClaims(token)     // 서명된 토큰 파싱
+                    .getPayload();                // 페이로드 추출
+
+            // Claims에서 "employeeId" 키의 값을 String 타입으로 추출
+            return claims.get("UserId", Long.class);
+
+        } catch (Exception e) {
+            // 토큰 파싱 중 오류 발생 시
+            log.error("JWT 토큰에서 유저 ID 추출 중 오류 발생: {}", e.getMessage(), e);
+            return null;  // 추출 실패 시 null 반환
+        }
+    }
+
     /**
      * JWT 토큰에서 직원 ID를 추출하는 메서드
      * 
@@ -85,7 +104,7 @@ public class JwtProvider {
                     .getPayload();                // 페이로드 추출
             
             // Claims에서 "employeeId" 키의 값을 String 타입으로 추출
-            return claims.get("employeeId", String.class);
+            return claims.get("EmployeeId", String.class);
             
         } catch (Exception e) {
             // 토큰 파싱 중 오류 발생 시
@@ -112,11 +131,30 @@ public class JwtProvider {
                     .getPayload();                // 페이로드 추출
                     
             // Claims에서 "role" 키의 값을 String 타입으로 추출
-            return claims.get("role", String.class);
+            return claims.get("Role", String.class);
             
         } catch (Exception e) {
             // 토큰 파싱 중 오류 발생 시
             log.error("JWT 토큰에서 사용자 역할 추출 중 오류 발생: {}", e.getMessage(), e);
+            return null;  // 추출 실패 시 null 반환
+        }
+    }
+
+    public String getShiftFromToken(String token) {
+        try {
+            // JWT 토큰을 파싱하여 Claims 추출
+            Claims claims = Jwts.parser()
+                    .verifyWith(getSigningKey())  // 서명 키로 검증
+                    .build()
+                    .parseSignedClaims(token)     // 서명된 토큰 파싱
+                    .getPayload();                // 페이로드 추출
+
+            // Claims에서 "employeeId" 키의 값을 String 타입으로 추출
+            return claims.get("Shift", String.class);
+
+        } catch (Exception e) {
+            // 토큰 파싱 중 오류 발생 시
+            log.error("JWT 토큰에서 유저 근무시간(shift) 추출 중 오류 발생: {}", e.getMessage(), e);
             return null;  // 추출 실패 시 null 반환
         }
     }

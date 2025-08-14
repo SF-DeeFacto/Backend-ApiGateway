@@ -101,8 +101,10 @@ public class JwtAuthFilter implements GlobalFilter, Ordered {
         }
 
         // JWT 토큰에서 사용자 정보 추출
+        Long userId = jwtProvider.getUserIdFromToken(token);            // 유저 ID (불변)
         String employeeId = jwtProvider.getEmployeeIdFromToken(token);  // 직원 ID
         String role = jwtProvider.getRoleFromToken(token);              // 사용자 역할
+        String shift = jwtProvider.getShiftFromToken(token);
         
         log.info("JwtAuthFilter - 토큰 검증 성공: employeeId={}, role={}", employeeId, role);
 
@@ -111,6 +113,8 @@ public class JwtAuthFilter implements GlobalFilter, Ordered {
         ServerHttpRequest modifiedRequest = exchange.getRequest().mutate()
                                             .header("X-Employee-Id", employeeId)  // 직원 ID 헤더
                                             .header("X-Role", role)               // 역할 헤더
+                                            .header("X-Shift", shift)               // 근무시간 헤더
+                                            .header("X-User-Id", String.valueOf(userId)) // 유저 ID 헤더
                                             .build();
 
         // 수정된 요청을 다음 필터/서비스로 전달
