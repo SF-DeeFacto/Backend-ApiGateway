@@ -79,7 +79,7 @@ public class JwtAuthFilter implements GlobalFilter, Ordered {
 
         // 인증이 필요하지 않은 경로들 (로그인, 회원가입)
         // 이 경로들은 JWT 토큰 없이도 접근 가능
-        if (path.startsWith("/auth/login") || path.startsWith("/auth/register")) {
+        if (path.startsWith("/auth/login")) {
             log.info("JwtAuthFilter - 인증 제외 경로: {}", path);
             // 인증 없이 바로 다음 필터/서비스로 요청 전달
             return chain.filter(exchange);
@@ -103,17 +103,13 @@ public class JwtAuthFilter implements GlobalFilter, Ordered {
         // JWT 토큰에서 사용자 정보 추출
         Long userId = jwtProvider.getUserIdFromToken(token);            // 유저 ID (불변)
         String employeeId = jwtProvider.getEmployeeIdFromToken(token);  // 직원 ID
-        String role = jwtProvider.getRoleFromToken(token);              // 사용자 역할
-        String shift = jwtProvider.getShiftFromToken(token);
         
-        log.info("JwtAuthFilter - 토큰 검증 성공: employeeId={}, role={}", employeeId, role);
+        log.info("JwtAuthFilter - 토큰 검증 성공: employeeId={}, userId={}", employeeId, userId);
 
         // 원본 요청에 사용자 정보를 헤더로 추가하여 새로운 요청 생성
         // 하위 서비스에서는 이 헤더를 통해 사용자 정보를 확인할 수 있음
         ServerHttpRequest modifiedRequest = exchange.getRequest().mutate()
                                             .header("X-Employee-Id", employeeId)  // 직원 ID 헤더
-                                            .header("X-Role", role)               // 역할 헤더
-                                            .header("X-Shift", shift)               // 근무시간 헤더
                                             .header("X-User-Id", String.valueOf(userId)) // 유저 ID 헤더
                                             .build();
 

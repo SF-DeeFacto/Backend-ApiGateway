@@ -114,52 +114,6 @@ public class JwtProvider {
     }
 
     /**
-     * JWT 토큰에서 사용자 역할을 추출하는 메서드
-     * 
-     * 토큰의 페이로드에서 "role" claim을 추출하여 반환
-     * 
-     * @param token JWT 토큰 문자열
-     * @return 사용자 역할 문자열 (예: ADMIN, USER), 파싱 실패 시 null
-     */
-    public String getRoleFromToken(String token) {
-        try {
-            // JWT 토큰을 파싱하여 Claims 추출
-            Claims claims = Jwts.parser()
-                    .verifyWith(getSigningKey())  // 서명 키로 검증
-                    .build()
-                    .parseSignedClaims(token)     // 서명된 토큰 파싱
-                    .getPayload();                // 페이로드 추출
-                    
-            // Claims에서 "role" 키의 값을 String 타입으로 추출
-            return claims.get("Role", String.class);
-            
-        } catch (Exception e) {
-            // 토큰 파싱 중 오류 발생 시
-            log.error("JWT 토큰에서 사용자 역할 추출 중 오류 발생: {}", e.getMessage(), e);
-            return null;  // 추출 실패 시 null 반환
-        }
-    }
-
-    public String getShiftFromToken(String token) {
-        try {
-            // JWT 토큰을 파싱하여 Claims 추출
-            Claims claims = Jwts.parser()
-                    .verifyWith(getSigningKey())  // 서명 키로 검증
-                    .build()
-                    .parseSignedClaims(token)     // 서명된 토큰 파싱
-                    .getPayload();                // 페이로드 추출
-
-            // Claims에서 "employeeId" 키의 값을 String 타입으로 추출
-            return claims.get("Shift", String.class);
-
-        } catch (Exception e) {
-            // 토큰 파싱 중 오류 발생 시
-            log.error("JWT 토큰에서 유저 근무시간(shift) 추출 중 오류 발생: {}", e.getMessage(), e);
-            return null;  // 추출 실패 시 null 반환
-        }
-    }
-
-    /**
      * JWT 토큰 서명에 사용할 비밀키를 생성하는 메서드
      * 
      * 설정 파일(application.yml)에서 "jwt.secret-key" 값을 읽어와서
