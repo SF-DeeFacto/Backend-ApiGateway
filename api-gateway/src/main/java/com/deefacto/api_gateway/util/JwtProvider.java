@@ -32,7 +32,7 @@ public class JwtProvider {
     
     /**
      * Spring의 Environment 객체를 주입받아 설정 파일의 값을 읽어옴
-     * application.yml, application-dev.yml, application-prod.yml 등의 설정값 접근 가능
+     * application.yml, application-local.yml, application-prod.yml 등의 설정값 접근 가능
      */
     private final Environment environment;
 
