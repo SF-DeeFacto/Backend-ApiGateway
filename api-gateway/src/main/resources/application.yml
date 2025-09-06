@@ -2,7 +2,7 @@
 # API Gateway 기본 설정 파일
 # =============================================================================
 # 이 파일은 모든 환경에서 공통으로 사용되는 기본 설정을 정의합니다.
-# 환경별 설정은 application-dev.yml, application-prod.yml에서 재정의할 수 있습니다.
+# 환경별 설정은 application-local.yml, application-prod.yml에서 재정의할 수 있습니다.
 
 # 서버 설정
 server:
