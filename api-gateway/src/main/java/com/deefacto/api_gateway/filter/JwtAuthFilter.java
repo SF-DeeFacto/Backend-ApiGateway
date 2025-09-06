@@ -79,7 +79,7 @@ public class JwtAuthFilter implements GlobalFilter, Ordered {
 
         // 인증이 필요하지 않은 경로들 (로그인, 회원가입)
         // 이 경로들은 JWT 토큰 없이도 접근 가능
-        if (path.startsWith("/auth/login")) {
+        if (path.startsWith("/auth/login") || path.startsWith("/auth/refresh")) {
             log.info("JwtAuthFilter - 인증 제외 경로: {}", path);
             // 인증 없이 바로 다음 필터/서비스로 요청 전달
             return chain.filter(exchange);
