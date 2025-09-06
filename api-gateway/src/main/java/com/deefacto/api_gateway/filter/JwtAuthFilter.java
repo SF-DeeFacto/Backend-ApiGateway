@@ -79,7 +79,7 @@ public class JwtAuthFilter implements GlobalFilter, Ordered {
 
         // 인증이 필요하지 않은 경로들 (로그인, 회원가입)
         // 이 경로들은 JWT 토큰 없이도 접근 가능
-        if (path.startsWith("/auth/login")) {
+        if (path.startsWith("/auth/login") || path.startsWith("/auth/refresh")) {
             log.info("JwtAuthFilter - 인증 제외 경로: {}", path);
             // 인증 없이 바로 다음 필터/서비스로 요청 전달
             return chain.filter(exchange);
@@ -125,27 +125,17 @@ public class JwtAuthFilter implements GlobalFilter, Ordered {
      * @param httpStatus HTTP 상태 코드 (예: 401 Unauthorized)
      * @return Mono<Void> 비동기 처리 결과
      */
+
     private Mono<Void> onError(ServerWebExchange exchange, String err, HttpStatus httpStatus) {
-        // JSON 형식의 에러 메시지 생성
         String errMsg = "{\"error\": \"" + err + "\"}";
-        
-        // HTTP 응답 상태 코드 설정
-        exchange.getResponse().setStatusCode(httpStatus);
-        
-        // JSON 문자열을 바이트 배열로 변환
         byte[] bytes = errMsg.getBytes(StandardCharsets.UTF_8);
-        
-        // 바이트 배열을 DataBuffer로 래핑 (Spring WebFlux에서 사용)
         DataBuffer buffer = exchange.getResponse().bufferFactory().wrap(bytes);
-        
-        // 응답 헤더 설정
+
+        exchange.getResponse().setStatusCode(httpStatus);
         exchange.getResponse().getHeaders().add("Content-Type", "application/json");
         exchange.getResponse().getHeaders().add("Content-Length", String.valueOf(bytes.length));
-        
-        // 응답 본문에 에러 메시지 작성
-        exchange.getResponse().writeWith(Mono.just(buffer));
-        
-        // 응답 완료 처리
-        return exchange.getResponse().setComplete();
+
+        // writeWith만 반환 -> 여기서 완료 처리까지 됨
+        return exchange.getResponse().writeWith(Mono.just(buffer));
     }
 }
