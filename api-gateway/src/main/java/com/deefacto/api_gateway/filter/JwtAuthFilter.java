@@ -1,20 +1,18 @@
 package com.deefacto.api_gateway.filter;
 
+import com.deefacto.api_gateway.common.exception.CustomException;
+import com.deefacto.api_gateway.common.exception.ErrorCode;
 import com.deefacto.api_gateway.util.JwtProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.core.Ordered;
-import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
-
-import java.nio.charset.StandardCharsets;
 
 /**
  * JWT 인증 필터
@@ -88,7 +86,8 @@ public class JwtAuthFilter implements GlobalFilter, Ordered {
         // Authorization 헤더가 없거나 "Bearer "로 시작하지 않는 경우
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             log.warn("JwtAuthFilter - 인증 헤더 없음 또는 잘못된 형식: {}", authHeader);
-            return onError(exchange, "인증 헤더가 없거나 잘못된 형식입니다", HttpStatus.UNAUTHORIZED);
+//            return onError(exchange, "인증 헤더가 없거나 잘못된 형식입니다", HttpStatus.UNAUTHORIZED);
+            throw new CustomException(ErrorCode.INVALID_TOKEN, "인증 헤더가 없거나 잘못된 형식입니다.");
         }
         
         // "Bearer " 접두사를 제거하여 순수 JWT 토큰만 추출
@@ -97,7 +96,8 @@ public class JwtAuthFilter implements GlobalFilter, Ordered {
         // JWT 토큰 유효성 검증 (서명, 만료시간 등)
         if (!jwtProvider.validateToken(token)) {
             log.warn("JwtAuthFilter - 유효하지 않은 토큰: {}", token);
-            return onError(exchange, "유효하지 않은 토큰입니다", HttpStatus.UNAUTHORIZED);
+//            return onError(exchange, "유효하지 않은 토큰입니다", HttpStatus.UNAUTHORIZED);
+            throw new CustomException(ErrorCode.TOKEN_EXPIRED, "유효하지 않은 토큰입니다. Token 재발급이 필요합니다.");
         }
 
         // JWT 토큰에서 사용자 정보 추출
@@ -126,16 +126,16 @@ public class JwtAuthFilter implements GlobalFilter, Ordered {
      * @return Mono<Void> 비동기 처리 결과
      */
 
-    private Mono<Void> onError(ServerWebExchange exchange, String err, HttpStatus httpStatus) {
-        String errMsg = "{\"error\": \"" + err + "\"}";
-        byte[] bytes = errMsg.getBytes(StandardCharsets.UTF_8);
-        DataBuffer buffer = exchange.getResponse().bufferFactory().wrap(bytes);
-
-        exchange.getResponse().setStatusCode(httpStatus);
-        exchange.getResponse().getHeaders().add("Content-Type", "application/json");
-        exchange.getResponse().getHeaders().add("Content-Length", String.valueOf(bytes.length));
-
-        // writeWith만 반환 -> 여기서 완료 처리까지 됨
-        return exchange.getResponse().writeWith(Mono.just(buffer));
-    }
+//    private Mono<Void> onError(ServerWebExchange exchange, String err, HttpStatus httpStatus) {
+//        String errMsg = "{\"error\": \"" + err + "\"}";
+//        byte[] bytes = errMsg.getBytes(StandardCharsets.UTF_8);
+//        DataBuffer buffer = exchange.getResponse().bufferFactory().wrap(bytes);
+//
+//        exchange.getResponse().setStatusCode(httpStatus);
+//        exchange.getResponse().getHeaders().add("Content-Type", "application/json");
+//        exchange.getResponse().getHeaders().add("Content-Length", String.valueOf(bytes.length));
+//
+//        // writeWith만 반환 -> 여기서 완료 처리까지 됨
+//        return exchange.getResponse().writeWith(Mono.just(buffer));
+//    }
 }
